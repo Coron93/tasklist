@@ -1,10 +1,9 @@
 package controllers;
 
 import java.io.IOException;
-import java.util.List;
+import java.sql.Timestamp;
 
 import javax.persistence.EntityManager;
-import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -15,31 +14,40 @@ import models.Tasks;
 import utils.DBUtil;
 
 /**
- * Servlet implementation class IndexServlet
+ * Servlet implementation class NewServlet
  */
-@WebServlet("/index")
-public class IndexServlet extends HttpServlet {
+@WebServlet("/new")
+public class NewServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
 
     /**
      * @see HttpServlet#HttpServlet()
      */
-    public IndexServlet() {
+    public NewServlet() {
         super();
     }
 
     /**
-     * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
+     * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
      */
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         EntityManager em = DBUtil.createEntityManager();
+        em.getTransaction().begin();
 
-        List<Tasks> tasks = em.createNamedQuery("getAllTasks",Tasks.class).getResultList();
+        Tasks t = new Tasks();
 
-        request.setAttribute("tasks", tasks);
+        t.setContent("task_1");
 
-        RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/views/tasks/index.jsp");
-        rd.forward(request, response);
+        Timestamp crrentTime = new Timestamp(System.currentTimeMillis());
+        t.setCreated_at(crrentTime);
+        t.setUpdated_at(crrentTime);
+
+        em.persist(t);
+        em.getTransaction().commit();
+
+        response.getWriter().append(Integer.valueOf(t.getId()).toString());
+
+        em.close();
     }
 
 }
